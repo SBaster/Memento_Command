@@ -1,13 +1,15 @@
-﻿#include <iostream>
+#include <iostream>
 #include <memory>
 #include <string>
-// Step 1: Define the Command Interface
+
+// Krok 1: Definicja interfejsu polecenia
 class Command {
 public:
     virtual ~Command() {}
     virtual void Execute() const = 0;
 };
-//Some commands can implement simple operations on their own.
+
+// Proste polecenie, które wykonuje prostą operację
 class SimpleCommand : public Command {
 private:
     std::string pay_load_;
@@ -15,21 +17,23 @@ private:
 public:
     explicit SimpleCommand(const std::string& pay_load) : pay_load_(pay_load) {}
     void Execute() const override {
-        std::cout << "SimpleCommand: See, I can do simple things like printing ("
-            << this->pay_load_ << ")\n";
+        std::cout << "ProstePolecenie: Mogę wykonać proste operacje, np. wypisać tekst ("
+                  << this->pay_load_ << ")\n";
     }
 };
- //The Receiver classes contain some important business logic.
+
+// Klasa odbiorcy zawierająca istotną logikę biznesową.
 class Receiver {
 public:
     void DoSomething(const std::string& a) {
-        std::cout << "Receiver: Working on (" << a << ".)\n";
+        std::cout << "Odbiorca: Pracuję nad (" << a << ").\n";
     }
     void DoSomethingElse(const std::string& b) {
-        std::cout << "Receiver: Also working on (" << b << ".)\n";
+        std::cout << "Odbiorca: Pracuję również nad (" << b << ").\n";
     }
 };
-//Complex commands can delegate more complex operations to other objects.
+
+// Złożone polecenie, które deleguje operacje do obiektu odbiorcy.
 class ComplexCommand : public Command {
 private:
     Receiver* receiver_;
@@ -40,12 +44,13 @@ public:
         : receiver_(receiver), a_(a), b_(b) {
     }
     void Execute() const override {
-        std::cout << "ComplexCommand: Complex stuff should be done by a receiver object.\n";
+        std::cout << "ZłożonePolecenie: Złożone operacje powinien wykonać obiekt odbiorcy.\n";
         receiver_->DoSomething(a_);
         receiver_->DoSomethingElse(b_);
     }
 };
-//The Invoker is associated with one or several commands.
+
+// Inwoker, który jest powiązany z jednym lub kilkoma poleceniami.
 class Invoker {
 private:
     std::unique_ptr<Command> on_start_;
@@ -58,25 +63,25 @@ public:
         on_finish_ = std::move(command);
     }
     void DoSomethingImportant() {
-        std::cout << "Invoker: Does anybody want something done before I begin?\n";
+        std::cout << "Inwoker: Czy ktoś potrzebuje, żebym coś zrobił przed rozpoczęciem?\n";
         if (on_start_) {
             on_start_->Execute();
         }
-        std::cout << "Invoker: ...doing something really important...\n";
-        std::cout << "Invoker: Does anybody want something done after I finish?\n";
+        std::cout << "Inwoker: ...wykonuję bardzo ważne zadanie...\n";
+        std::cout << "Inwoker: Czy ktoś potrzebuje, żebym coś zrobił po zakończeniu?\n";
         if (on_finish_) {
             on_finish_->Execute();
         }
     }
 };
+
 int main() {
     Invoker invoker;
-    // Obiekty poleceń są tworzone dynamicznie za pomocą std::make_unique,
-    // co gwarantuje automatyczne zarządzanie pamięcią.
-    invoker.SetOnStart(std::make_unique<SimpleCommand>("Say Hi!"));
-    // Tworzymy odbiorcę na stosie.
+    // Tworzenie obiektów poleceń przy użyciu std::make_unique, co gwarantuje automatyczne zarządzanie pamięcią.
+    invoker.SetOnStart(std::make_unique<SimpleCommand>("Powiedz Cześć!"));
+    // Tworzymy obiekt odbiorcy na stosie.
     Receiver receiver;
-    invoker.SetOnFinish(std::make_unique<ComplexCommand>(&receiver, "Send email", "Save report"));
+    invoker.SetOnFinish(std::make_unique<ComplexCommand>(&receiver, "Wyślij email", "Zapisz raport"));
 
     invoker.DoSomethingImportant();
 
